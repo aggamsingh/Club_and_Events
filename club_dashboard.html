@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Club Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+        body {
+            background-color: #121212;
+            background-image: radial-gradient(ellipse at top, hsl(231, 15%, 18%) 0%, #121212 60%);
+            background-attachment: fixed;
+            color: #e0e0e0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            padding: 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            margin-bottom: 40px;
+            background-color: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+        }
+        .header h1 {
+            font-size: 1.8rem;
+            margin: 0;
+        }
+        .header-actions a, .header-actions button {
+            color: #fff;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: background-color 0.3s ease;
+            margin-left: 10px;
+            border: none;
+            cursor: pointer;
+        }
+        #addEventBtn {
+            background-color: #0d6efd;
+        }
+        #addEventBtn:hover {
+            background-color: #0b5ed7;
+        }
+        #logoutBtn {
+            background-color: #dc3545;
+        }
+        #logoutBtn:hover {
+            background-color: #c82333;
+        }
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 30px;
+        }
+        .event-card {
+            background-color: rgba(30, 30, 30, 0.7);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .event-poster {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        .event-info {
+            padding: 25px;
+        }
+        .event-info h2 {
+            margin: 0 0 15px;
+            font-size: 1.5rem;
+            color: #ffffff;
+        }
+        .event-info p {
+            margin: 10px 0;
+            color: #a0a0a5;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .event-actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        .event-actions button {
+            flex-grow: 1;
+            padding: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            border: none;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .edit-btn { background-color: #17a2b8; }
+        .edit-btn:hover { background-color: #138496; }
+        .delete-btn { background-color: #dc3545; }
+        .delete-btn:hover { background-color: #c82333; }
+        
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease;
+            z-index: 1000;
+        }
+        .modal-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: #1e1e1e;
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+        .modal-content h3 { margin-top: 0; }
+        .modal-content p { margin-bottom: 20px; color: #a0a0a5; }
+        .modal-content input {
+            width: 100%; padding: 10px; margin-bottom: 20px; border-radius: 8px;
+            border: 1px solid #4a4a4c; background-color: #3c3c3e; color: #f0f0f0; box-sizing: border-box;
+        }
+        .modal-actions { display: flex; gap: 10px; justify-content: center; }
+        .modal-actions button {
+            padding: 10px 20px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;
+        }
+        #confirmDeleteBtn { background-color: #dc3545; color: white; }
+        #cancelDeleteBtn { background-color: #6c757d; color: white; }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+            .events-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h1 id="dashboardTitle">Loading Dashboard...</h1>
+            <div class="header-actions">
+                <a href="event-submission.html" id="addEventBtn">Add New Event</a>
+                <button id="logoutBtn">Logout</button>
+            </div>
+        </div>
+
+        <h2 style="color: #a0a0a5; margin-bottom: 20px;">Manage Your Events</h2>
+        <div class="events-grid" id="eventsGrid">
+            <!-- Club's events will be loaded here -->
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Confirm Deletion</h3>
+            <p>Please enter your club password to confirm you want to permanently delete this event.</p>
+            <form id="deleteForm">
+                <input type="password" id="deletePassword" placeholder="Enter password" required>
+                <div class="modal-actions">
+                    <button type="button" id="cancelDeleteBtn">Cancel</button>
+                    <button type="submit" id="confirmDeleteBtn">Delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const dashboardTitle = document.getElementById('dashboardTitle');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const eventsGrid = document.getElementById('eventsGrid');
+            const deleteModal = document.getElementById('deleteModal');
+            const deleteForm = document.getElementById('deleteForm');
+            const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+            const API_URL = 'http://localhost:5000';
+            
+            let eventIdToDelete = null;
+
+            // --- 1. Authentication Check ---
+            const loggedInClubName = sessionStorage.getItem('loggedInClubName');
+            if (!loggedInClubName) {
+                alert('You must be logged in to view this page.');
+                window.location.href = 'club_login.html';
+                return;
+            }
+            dashboardTitle.textContent = `${loggedInClubName} Dashboard`;
+
+            // --- 2. Logout ---
+            logoutBtn.addEventListener('click', () => {
+                sessionStorage.clear();
+                window.location.href = 'club_login.html';
+            });
+
+            // --- 3. Fetch and Display Club's Events ---
+            async function fetchClubEvents() {
+                try {
+                    const response = await fetch(`${API_URL}/api/events?t=${new Date().getTime()}`);
+                    const allEvents = await response.json();
+                    const clubEvents = allEvents.filter(event => event.clubName === loggedInClubName);
+                    
+                    eventsGrid.innerHTML = '';
+                    if (clubEvents.length === 0) {
+                        eventsGrid.innerHTML = '<p>You have not created any events yet.</p>';
+                        return;
+                    }
+
+                    clubEvents.forEach(event => {
+                        const card = document.createElement('div');
+                        card.className = 'event-card';
+                        const posterUrl = `${API_URL}/${event.posterPath.replace(/\\/g, '/')}`;
+                        const startDate = new Date(event.startDate).toLocaleString();
+
+                        card.innerHTML = `
+                            <img src="${posterUrl}" alt="${event.name} Poster" class="event-poster">
+                            <div class="event-info">
+                                <h2>${event.name}</h2>
+                                <p><i class="fas fa-calendar-alt"></i> ${startDate}</p>
+                                <div class="event-actions">
+                                    <button class="edit-btn" data-id="${event._id}">Edit</button>
+                                    <button class="delete-btn" data-id="${event._id}">Delete</button>
+                                </div>
+                            </div>
+                        `;
+                        eventsGrid.appendChild(card);
+                    });
+                } catch (error) {
+                    console.error('Error fetching club events:', error);
+                    eventsGrid.innerHTML = '<p style="color: #dc3545;">Could not load your events.</p>';
+                }
+            }
+
+            // --- 4. Handle Edit and Delete Clicks (Event Delegation) ---
+            eventsGrid.addEventListener('click', (e) => {
+                const target = e.target;
+                if (target.classList.contains('delete-btn')) {
+                    eventIdToDelete = target.dataset.id;
+                    deleteModal.classList.add('visible');
+                }
+                if (target.classList.contains('edit-btn')) {
+                    window.location.href = `event-submission.html?edit=${target.dataset.id}`;
+                }
+            });
+
+            // --- 5. Handle Delete Confirmation ---
+            deleteForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const password = document.getElementById('deletePassword').value;
+                if (!password || !eventIdToDelete) return;
+
+                try {
+                    const response = await fetch(`${API_URL}/api/events/${eventIdToDelete}`, {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ password: password })
+                    });
+
+                    const result = await response.json();
+                    if (!response.ok) throw new Error(result.message);
+
+                    alert('Event deleted successfully!');
+                    deleteModal.classList.remove('visible');
+                    fetchClubEvents(); // Refresh the event list
+                } catch (error) {
+                    alert(`Error: ${error.message}`);
+                }
+            });
+
+            cancelDeleteBtn.addEventListener('click', () => {
+                deleteModal.classList.remove('visible');
+                deleteForm.reset();
+            });
+
+            fetchClubEvents();
+        });
+    </script>
+</body>
+</html>
+
