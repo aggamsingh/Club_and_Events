@@ -1,0 +1,6 @@
+# Normalise line endings so Windows checkouts build the same as CI/Docker (Linux).
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.ico binary

@@ -1,0 +1,13 @@
+**/node_modules
+**/.env
+**/.env.*
+client/dist
+server/uploads
+server/tests
+legacy-v1
+.git
+.github
+.vscode
+docs
+*.md
+*.log

@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Secrets — never commit real env files
+.env
+.env.*
+!.env.example
+
+# Build output / coverage
+client/dist/
+coverage/
+
+# Legacy v1 local uploads (v2 stores posters in MongoDB GridFS)
+server/uploads/
+
+# Logs & OS noise
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+legacy-v1/

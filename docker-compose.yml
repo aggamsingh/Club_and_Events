@@ -1,0 +1,34 @@
+# One-command local stack: MongoDB + EventHub (API serving the built React app).
+#   JWT_SECRET=$(openssl rand -base64 48) docker compose up --build
+#   docker compose exec app npm run seed:demo --prefix server
+# Then open http://localhost:5000
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ['CMD', 'mongosh', '--quiet', '--eval', 'db.adminCommand("ping")']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+    ports:
+      - '5000:5000'
+    environment:
+      NODE_ENV: production
+      MONGO_URI: mongodb://mongo:27017/eventhub
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET (32+ random characters)}
+      TRUST_PROXY: '0'
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@eventhub.local}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-change-this-admin-password}
+
+volumes:
+  mongo-data:
