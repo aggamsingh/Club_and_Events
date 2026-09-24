@@ -1,5 +1,7 @@
 # EventHub — Campus Event Platform
 
+[![CI](https://github.com/aggamsingh/Club_and_Events/actions/workflows/ci.yml/badge.svg)](https://github.com/aggamsingh/Club_and_Events/actions/workflows/ci.yml)
+
 A full-stack web app where **student clubs publish events** and **students discover, RSVP to and keep track of them**. An **admin** manages club accounts and moderates content.
 
 Built with **React 19 · React Router 7 · TanStack Query · Tailwind CSS 4** on the front end and **Node.js · Express 5 · MongoDB (Mongoose 9) · GridFS** on the back end. It has cookie-based JWT auth, role-based access control, over-booking-safe RSVPs and 60 automated tests, and ships as one Docker image.
