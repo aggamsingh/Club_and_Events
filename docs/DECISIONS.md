@@ -109,7 +109,10 @@ Each record gives the **context**, the **decision**, the **alternatives** consid
 | Multi-document transaction | Correct, but needs a replica set (so no standalone `mongod`, slower tests) and more code for the same guarantee. |
 | Count `Rsvp` documents on every read | Always accurate, but costs an extra `count` per event card and doesn't by itself prevent over-booking. |
 
-**Tradeoffs.** `rsvpCount` is **denormalised**. If the process crashed between steps 1 and 3, an RSVP could exist without a matching seat count. That window is milliseconds, and it errs on the safe side (never over-books). A test proves the guarantee under load: 10 concurrent requests, 3 seats, exactly 3 successes.
+**Tradeoffs.** `rsvpCount` is **denormalised**. The guarantee holds for any number of concurrent requests, and a test proves it under load (10 concurrent requests, 3 seats, exactly 3 successes). It does **not** hold if the process crashes at exactly the wrong moment. A crash between steps 1 and 2 (or before the step-3 compensation) leaves an RSVP whose seat was never counted, so a later student could take that seat and the event would be over-booked by one. The window is a few milliseconds and needs a crash at that exact point. If that ever matters, there are three fixes:
+- **Reverse the order:** claim the seat first, then insert the RSVP, and release the seat if the insert is a duplicate. A crash then leaves a counted seat with no RSVP, so the event under-books, which is the safe direction. The cost: a duplicate request briefly holds a seat and can make a genuine request for the last seat see "full".
+- **Use a multi-document transaction** for the two writes. Atlas clusters are replica sets, so this works in production; tests would need `MongoMemoryReplSet`.
+- **Run a periodic reconciliation job** that recounts RSVPs per event and corrects any drift.
 
 ---
 
